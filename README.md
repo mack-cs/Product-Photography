@@ -1,0 +1,2 @@
+# Product-Photography
+Android application to be used for Product Photography. It helps capturing product photo and store it in a folder named by product barcode and all images are named using their barcodes to allow easy search of images. The application also captures product details i.e description, weight and dimensions. It is aimed at helping business owners who wants to put their products online
