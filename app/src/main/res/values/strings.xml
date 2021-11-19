@@ -1,3 +1,14 @@
 <resources>
     <string name="app_name">Product Photography</string>
+    <string name="scan_barcode">Scan Barcode</string>
+    <string name="product_description">Product Description</string>
+    <string name="label">label</string>
+    <string name="length">Lenght</string>
+    <string name="width">Width</string>
+    <string name="weight">Weight</string>
+    <string name="height">Height</string>
+    <string name="add_product">ADD Product</string>
+    <string name="barcode">Barcode</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
