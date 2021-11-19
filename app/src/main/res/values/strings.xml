@@ -11,4 +11,10 @@
     <string name="barcode">Barcode</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="descriptionPlaceholder">Some product description to appear here. This is just a place holder</string>
+    <string name="placeholderBarcode">9897832453453</string>
+    <string name="placeholderLength">900.2</string>
+    <string name="placeholderWidth">89.9</string>
+    <string name="placeholderHeight">980.9</string>
+    <string name="placeholderWeight">82.0</string>
 </resources>
