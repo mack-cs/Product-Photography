@@ -2,18 +2,23 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.mcs.productphotography">
 
-    <application
-        android:allowBackup="true"
+    <uses-permission android:name="android.permission.CAMERA" />
 
+    <application
+        android:name=".ProductApplication"
+        android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.ProductPhotography">
         <activity
+            android:name=".CaptureActivityPortait"
+            android:exported="true" />
+        <activity
             android:name=".ProductActivity"
-            android:windowSoftInputMode="adjustPan"
-            android:exported="true">
+            android:exported="true"
+            android:windowSoftInputMode="adjustPan">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

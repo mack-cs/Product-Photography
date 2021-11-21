@@ -3,7 +3,6 @@
     <string name="scan_barcode">Scan Barcode</string>
     <string name="product_description">Product Description</string>
     <string name="label">label</string>
-    <string name="length">Lenght</string>
     <string name="width">Width</string>
     <string name="weight">Weight</string>
     <string name="height">Height</string>
@@ -17,4 +16,10 @@
     <string name="placeholderWidth">89.9</string>
     <string name="placeholderHeight">980.9</string>
     <string name="placeholderWeight">82.0</string>
+    <string name="barcode_scan">Barcode Scan</string>
+    <string name="length_hint">Length</string>
+    <string name="width_hint">Width</string>
+    <string name="weight_hint">Weight</string>
+    <string name="add_btn_text">ADD PRODUCT</string>
+    <string name="height_hint">Height</string>
 </resources>

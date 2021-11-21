@@ -7,7 +7,7 @@
     tools:context=".ProductActivity">
 
     <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/barcodeET"
+        android:id="@+id/barcodeTF"
         style="@style/Widget.Design.TextInputLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -21,6 +21,7 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/barcodeET"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ems="10"
@@ -39,10 +40,11 @@
         android:layout_marginStart="10dp"
         android:layout_marginTop="21dp"
         android:layout_marginEnd="8dp"
-        app:layout_constraintEnd_toStartOf="@+id/barcodeET"
+        android:contentDescription="@string/barcode_scan"
+        app:layout_constraintEnd_toStartOf="@+id/barcodeTF"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/camera_scan_24" />
+        app:srcCompat="@drawable/ic_baseline_qr_code_scanner_24" />
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/nestedScrollView"
@@ -52,7 +54,7 @@
         android:fillViewport="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/barcodeET">
+        app:layout_constraintTop_toBottomOf="@+id/barcodeTF">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -75,7 +77,7 @@
     </androidx.core.widget.NestedScrollView>
 
     <EditText
-        android:id="@+id/descriptionDetail"
+        android:id="@+id/descriptionET"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
@@ -107,28 +109,17 @@
 
         <TextView
             android:id="@+id/barcodeLabel"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginEnd="10dp"
             android:layout_weight="5"
             android:ems="10"
-            android:hint="@string/length"
-            android:text="@string/barcode"
+            android:hint="@string/length_hint"
+            android:text="Product Details"
             android:textColor="#363443"
             android:textSize="22sp"
             android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/barcodeDetail"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ems="10"
-            android:hint="@string/width"
-            android:textColor="#363443"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            tools:text="4567347252237" />
     </LinearLayout>
 
 
@@ -158,13 +149,14 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="10dp"
         android:orientation="horizontal"
+        android:baselineAligned="false"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/descriptionDetail">
+        app:layout_constraintTop_toBottomOf="@+id/descriptionET">
 
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/lengthET"
+            android:id="@+id/lengthLabel"
             style="@style/Widget.Design.TextInputLayout"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -175,12 +167,13 @@
             <com.google.android.material.textfield.TextInputEditText
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Length"
+                android:hint="@string/length_hint"
+                android:id="@+id/lengthET"
                 android:inputType="numberDecimal" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/widthET"
+            android:id="@+id/widthLabel"
             style="@style/Widget.Design.TextInputLayout"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -190,7 +183,8 @@
             <com.google.android.material.textfield.TextInputEditText
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Width"
+                android:id="@+id/widthET"
+                android:hint="@string/width_hint"
                 android:inputType="numberDecimal" />
         </com.google.android.material.textfield.TextInputLayout>
     </LinearLayout>
@@ -203,13 +197,14 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="10dp"
         android:orientation="horizontal"
+        android:baselineAligned="false"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/lengthLL">
 
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/heightET"
+            android:id="@+id/heightLabel"
             style="@style/Widget.Design.TextInputLayout"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -220,12 +215,13 @@
             <com.google.android.material.textfield.TextInputEditText
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Length"
+                android:id="@+id/heightET"
+                android:hint="@string/height_hint"
                 android:inputType="numberDecimal" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/weightET"
+            android:id="@+id/weightLabel"
             style="@style/Widget.Design.TextInputLayout"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -233,24 +229,26 @@
             android:layout_weight="1">
 
             <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/weightET"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Weight"
+                android:hint="@string/weight_hint"
                 android:inputType="numberDecimal" />
         </com.google.android.material.textfield.TextInputLayout>
     </LinearLayout>
 
     <com.google.android.material.button.MaterialButton
+        android:id="@+id/saveProductET"
         style="@style/Widget.MaterialComponents.Button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
         android:layout_marginTop="32dp"
         android:layout_marginEnd="10dp"
-        android:text="ADD PRODUCT"
+        android:text="@string/add_btn_text"
         android:textColor="#50A1E1"
-        app:cornerRadius="10dp"
         android:textSize="24sp"
+        app:cornerRadius="10dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/weightLL"
