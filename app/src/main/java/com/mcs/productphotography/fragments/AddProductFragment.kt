@@ -15,21 +15,28 @@ import com.mcs.productphotography.*
 import com.mcs.productphotography.databinding.FragmentAddProductBinding
 import androidx.core.content.ContextCompat.getSystemService
 
-import android.R
+
 import android.content.Context
 import android.view.inputmethod.InputMethodManager
 
-import android.widget.EditText
-import androidx.core.content.ContextCompat
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanIntentResult
+import com.journeyapps.barcodescanner.ScanOptions
 
 
 class AddProductFragment : Fragment() {
     private  var _binding: FragmentAddProductBinding? = null
-    private lateinit var barcodeScanner: IntentIntegrator
     private val binding get() = _binding!!
     private  var returnedId:Long = 0
     private val productViewModel: ProductViewModel by activityViewModels{ProductViewModelFactory(
         (activity?.application as ProductApplication).repository)}
+    private val fragmentLauncher = registerForActivityResult(ScanContract()) { result: ScanIntentResult ->
+        if (result.contents == null) {
+            Toast.makeText(context, "Scan Canceled", Toast.LENGTH_LONG).show()
+        } else {
+            binding.barcodeET.setText(result.contents.toString())
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -52,13 +59,11 @@ class AddProductFragment : Fragment() {
     }
 
     private fun setupScanner() {
-        barcodeScanner = IntentIntegrator.forSupportFragment(this)
-        barcodeScanner.captureActivity = CaptureActivityPortait::class.java
-        barcodeScanner.setOrientationLocked(true)
+        fragmentLauncher.launch(ScanOptions().setCaptureActivity(CaptureActivityPortait::class.java))
     }
 
     private fun setOnClickListener() {
-        binding.cameraScanIV.setOnClickListener { performAction() }
+        binding.cameraScanIV.setOnClickListener { setupScanner() }
     }
 
     private fun saveProduct() {
@@ -103,26 +108,13 @@ class AddProductFragment : Fragment() {
         return isEmpty
     }
 
-    private fun performAction() {
-        barcodeScanner.initiateScan()
-    }
 
     override fun onResume() {
         Log.i("Frag-Resume","Resumed")
         super.onResume()
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        val result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data)
-        if (result.contents == null){
-            Toast.makeText(activity, "Canceled!", Toast.LENGTH_LONG).show()
-        } else {
-            var a = result.contents.toString()
-            binding.barcodeET.setText(result.contents.toString())
-        }
 
-    }
 
 
 
