@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId "com.mcs.productphotography"
-        minSdk 21
+        minSdk 29
         targetSdk 31
         versionCode 1
         versionName "1.0"
@@ -75,4 +75,7 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     androidTestImplementation "androidx.test.ext:junit:$rootProject.androidxJunitVersion"
+    implementation("com.github.doyaaaaaken:kotlin-csv-jvm:1.2.0") //for JVM platform
+    //implementation("com.github.doyaaaaaken:kotlin-csv-js:1.2.0") //for Kotlin JS platform
+
 }

@@ -12,7 +12,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="5dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="10dp"
         android:layout_marginEnd="10dp"
         android:layout_weight="1"
         app:layout_constraintBottom_toTopOf="@+id/nestedScrollView"
@@ -35,8 +35,8 @@
     <ImageView
         android:id="@+id/cameraScanIV"
         style="@style/Widget.MaterialComponents.Button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="70dp"
+        android:layout_height="60dp"
         android:layout_marginStart="10dp"
         android:layout_marginTop="21dp"
         android:layout_marginEnd="8dp"
@@ -44,7 +44,7 @@
         app:layout_constraintEnd_toStartOf="@+id/barcodeTF"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ic_baseline_qr_code_scanner_24" />
+        app:srcCompat="@drawable/barcode" />
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/nestedScrollView"
@@ -58,19 +58,21 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="250dp"
+            android:layout_height="wrap_content"
             android:orientation="vertical">
 
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvPrivatePhotos"
+                android:id="@+id/rvPhotos"
                 android:layout_width="match_parent"
-                android:layout_height="150dp"
+                android:layout_height="194dp"
                 android:layout_marginBottom="16dp"
+                app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
                 app:layout_constraintBottom_toTopOf="@+id/btnTakePhoto"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                app:spanCount="2" />
 
         </LinearLayout>
 
@@ -81,18 +83,40 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="10dp"
         android:layout_marginEnd="10dp"
         android:ems="10"
         android:gravity="start|top"
         android:hint="@string/product_description"
         android:inputType="textMultiLine"
         android:textColor="#363443"
-        android:textSize="22sp"
+        android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/barcodeLayout" />
 
+
+    <LinearLayout
+        android:id="@+id/capturePhotoLL"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginEnd="10dp"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/nestedScrollView">
+
+        <ImageView
+            android:id="@+id/btnCapture"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:contentDescription="@string/photo_capture_button"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:srcCompat="@drawable/camera" />
+
+    </LinearLayout>
 
 
     <LinearLayout
@@ -100,22 +124,23 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="10dp"
         android:layout_marginEnd="10dp"
         android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/nestedScrollView">
+        app:layout_constraintTop_toBottomOf="@+id/capturePhotoLL">
 
         <TextView
             android:id="@+id/barcodeLabel"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="10dp"
+            android:layout_marginStart="2dp"
             android:layout_weight="5"
+            android:padding="1dp"
             android:ems="10"
-            android:hint="@string/length_hint"
-            android:text="Product Details"
+            android:text="@string/product_details"
             android:textColor="#363443"
             android:textSize="22sp"
             android:textStyle="bold" />
@@ -146,7 +171,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="2dp"
         android:layout_marginEnd="10dp"
         android:orientation="horizontal"
         android:baselineAligned="false"
@@ -194,7 +219,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="2dp"
         android:layout_marginEnd="10dp"
         android:orientation="horizontal"
         android:baselineAligned="false"
@@ -243,7 +268,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="25dp"
         android:layout_marginEnd="10dp"
         android:text="@string/add_btn_text"
         android:textColor="#50A1E1"

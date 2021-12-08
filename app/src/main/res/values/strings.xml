@@ -22,4 +22,9 @@
     <string name="weight_hint">Weight</string>
     <string name="add_btn_text">ADD PRODUCT</string>
     <string name="height_hint">Height</string>
+    <string name="take_photo">Take Photo</string>
+    <string name="product_details">Product Details</string>
+    <string name="photo_capture_button">Photo Capture Button</string>
+    <string name="settings">Settings</string>
+    <string name="export_csv">Export CSV</string>
 </resources>
