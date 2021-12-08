@@ -23,7 +23,6 @@ class ProductActivity : AppCompatActivity() {
         binding = ActivityProductBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        Log.d("On Create","Created")
 
 
         val addProductFragment = AddProductFragment()
@@ -39,16 +38,18 @@ class ProductActivity : AppCompatActivity() {
         }
         productViewModel.returnedId.observe(this, Observer {
             returnedId  = productViewModel.returnedId.value!!
-            if(returnedId > 0){
-                Toast.makeText(this, "Product added!",Toast.LENGTH_LONG).show()
-            }else if(returnedId == -1L){
-                Toast.makeText(this, "Product already exists!",Toast.LENGTH_LONG).show()
-            }else{
-                Toast.makeText(this, "Product not added!",Toast.LENGTH_LONG).show()
+            when {
+                returnedId > 0 -> {
+                    Toast.makeText(this, "Product added!",Toast.LENGTH_LONG).show()
+                }
+                returnedId == -1L -> {
+                    Toast.makeText(this, "Product already exists!",Toast.LENGTH_LONG).show()
+                }
+                else -> {
+                    Toast.makeText(this, "Product not added!",Toast.LENGTH_LONG).show()
+                }
             }
-            Log.i("Activity - OnCreate-i","In VMid = $returnedId")
         })
-        Log.i("Activity - OnCreate-ot","After VMid = $returnedId")
     }
     private fun makeCurrentFragment(fragment: Fragment) =
         supportFragmentManager.beginTransaction().apply {

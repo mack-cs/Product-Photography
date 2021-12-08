@@ -1,5 +1,7 @@
 package com.mcs.productphotography.fragments
 
+import android.Manifest
+import android.content.ContentValues
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -10,21 +12,49 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
-import com.google.zxing.integration.android.IntentIntegrator
 import com.mcs.productphotography.*
 import com.mcs.productphotography.databinding.FragmentAddProductBinding
-import androidx.core.content.ContextCompat.getSystemService
 
 
 import android.content.Context
+import android.content.pm.PackageManager
+import android.database.ContentObserver
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Matrix
+import android.net.Uri
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
 import android.view.inputmethod.InputMethodManager
+import android.widget.EditText
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
+import androidx.lifecycle.lifecycleScope
 
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanIntentResult
 import com.journeyapps.barcodescanner.ScanOptions
+import com.mcs.productphotography.fragments.Utility.saveProduct
+import kotlinx.coroutines.launch
+import java.io.File
+import java.io.IOException
+import java.io.OutputStream
 
 
 class AddProductFragment : Fragment() {
+    private lateinit var photoFile: File
+    private val FILE_NAME = "photo.jpg"
+    private var readPermissionGranted = false
+    private var writePermissionGranted = false
+    private lateinit var permissionsLauncher: ActivityResultLauncher<Array<String>>
+    private lateinit var contentObserver: ContentObserver
+
+    private lateinit var externalStoragePhotoAdapter: ListPhotosAdapter
+    private var fileFolder:String = ""
     private  var _binding: FragmentAddProductBinding? = null
     private val binding get() = _binding!!
     private  var returnedId:Long = 0
@@ -37,6 +67,10 @@ class AddProductFragment : Fragment() {
             binding.barcodeET.setText(result.contents.toString())
         }
     }
+    private val capturePhotoLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
+            result ->
+        processImage(result.resultCode)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -45,17 +79,65 @@ class AddProductFragment : Fragment() {
         // Inflate the layout for this fragment
         _binding = FragmentAddProductBinding.inflate(inflater, container, false)
         val view = binding.root
-        binding.saveProductET.setOnClickListener { saveProduct() }
+
+        val editTexts = mutableListOf<EditText>()
+        editTexts.add(binding.barcodeET)
+        editTexts.add(binding.descriptionET)
+        editTexts.add(binding.lengthET)
+        editTexts.add(binding.widthET)
+        editTexts.add(binding.heightET)
+        editTexts.add(binding.weightET)
+
+        binding.saveProductET.setOnClickListener { saveProduct(editTexts, productViewModel,requireContext()) }
         productViewModel.returnedId.observe(requireActivity(), Observer {
             returnedId  = productViewModel.returnedId.value!!
         })
+        binding.barcodeET.onFocusChangeListener = View.OnFocusChangeListener{ view, b ->
+            if (!b) {
+                fileFolder = binding.barcodeET.text.toString()
+            }
+        }
+
+        externalStoragePhotoAdapter = ListPhotosAdapter()
+        setupExternalStorageRecyclerView()
+        initContentObserver()
+
+        permissionsLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+            readPermissionGranted = permissions[Manifest.permission.READ_EXTERNAL_STORAGE] ?: readPermissionGranted
+            writePermissionGranted = permissions[Manifest.permission.WRITE_EXTERNAL_STORAGE] ?: writePermissionGranted
+
+            if (readPermissionGranted) {
+                if (fileFolder != "") {
+                    loadPhotosFromExternalStorageIntoRecyclerView(fileFolder)
+                }
+            } else {
+                Toast.makeText(activity, "Can't read files without permission.", Toast.LENGTH_LONG)
+                    .show()
+            }
+        }
+        updateOrRequestPermissions()
+        binding.btnCapture.setOnClickListener {
+            val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+            photoFile = Utility.getPhotoFile(requireActivity(),FILE_NAME)
+
+            // This Doesnt work for API >= 24,(starting2016)
+            //takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoFile)
+            val fileProvider = activity?.application?.let { it1 -> FileProvider.getUriForFile(it1,"package com.mcs.productphotography.fileprovider", photoFile) }
+            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,fileProvider)
+            // Check if there is camera
+            if (activity?.let { it1 -> takePictureIntent.resolveActivity(it1.packageManager) } !=null) {
+                capturePhotoLauncher.launch(takePictureIntent)
+            }else{
+                Toast.makeText(activity,"Unable to open camera", Toast.LENGTH_LONG).show()
+            }
+        }
+        if (fileFolder != "")loadPhotosFromExternalStorageIntoRecyclerView(fileFolder)
         return view
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setOnClickListener()
-        setupScanner()
     }
 
     private fun setupScanner() {
@@ -66,55 +148,84 @@ class AddProductFragment : Fragment() {
         binding.cameraScanIV.setOnClickListener { setupScanner() }
     }
 
-    private fun saveProduct() {
-        val barcode = binding.barcodeET.text.toString()
-        val desc = binding.descriptionET.text.toString()
-        val length = binding.lengthET.text.toString()
-        val width = binding.widthET.text.toString()
-        val height = binding.heightET.text.toString()
-        val weight = binding.weightET.text.toString()
 
 
-        if (checkIfEmpty(barcode, desc, length, width, height, weight)){
-            Toast.makeText(activity,"All fields are required!",Toast.LENGTH_LONG).show()
-        }else{
-            productViewModel.insert(Product(barcode,desc,length.toDouble(),width.toDouble(),height.toDouble(),weight.toDouble()))
-            emptyFields()
-        }
-    }
-
-    private fun emptyFields() {
-        binding.barcodeET.setText("")
-        binding.descriptionET.setText("")
-        binding.lengthET.setText("")
-        binding.widthET.setText("")
-        binding.heightET.setText("")
-        binding.weightET.setText("")
-        binding.barcodeET.requestFocus()
-        val imm: InputMethodManager? =
-            activity?.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager?
-        imm?.showSoftInput(binding.barcodeET, InputMethodManager.SHOW_IMPLICIT)
 
 
-    }
 
-    private fun checkIfEmpty(vararg containers: String): Boolean{
-        var isEmpty = false
-        for (container in containers){
-            if(container.isEmpty()){
-                isEmpty = true
+
+    private fun initContentObserver() {
+        contentObserver = object : ContentObserver(null) {
+            override fun onChange(selfChange: Boolean) {
+                if (readPermissionGranted && fileFolder != "") {
+                    loadPhotosFromExternalStorageIntoRecyclerView(fileFolder)
+                }
             }
         }
-        return isEmpty
+        activity?.contentResolver?.registerContentObserver(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            true,
+            contentObserver
+        )
+    }
+    private fun setupExternalStorageRecyclerView() = binding.rvPhotos.apply {
+        adapter = externalStoragePhotoAdapter
+
+    }
+    private fun loadPhotosFromExternalStorageIntoRecyclerView(folder:String) {
+
+        lifecycleScope.launch {
+            val photos = productViewModel.getImages(folder,requireContext())
+            Log.i("Photos","${photos.size}")
+            externalStoragePhotoAdapter.submitList(photos)
+        }
     }
 
 
-    override fun onResume() {
-        Log.i("Frag-Resume","Resumed")
-        super.onResume()
+
+
+    private fun processImage(resultCode: Int) {
+        when (resultCode) {
+            AppCompatActivity.RESULT_OK -> {
+                //val takenImage = data?.extras?.get("data") as Bitmap
+                val takenImage = BitmapFactory.decodeFile(photoFile.absolutePath)
+                val rotatedImg = Utility.rotateBitmap(takenImage,90f)
+                activity?.let { productViewModel.saveBitmapQ(it, rotatedImg,fileFolder) } //save full quality
+            }
+            else -> {
+                Toast.makeText(activity, "Photo Capture Canceled", Toast.LENGTH_LONG).show()
+            }
+        }
     }
 
 
+
+
+    private fun updateOrRequestPermissions() {
+        val hasReadPermission = ContextCompat.checkSelfPermission(
+            requireContext(),
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        ) == PackageManager.PERMISSION_GRANTED
+        val hasWritePermission = ContextCompat.checkSelfPermission(
+            requireContext(),
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+        ) == PackageManager.PERMISSION_GRANTED
+        val minSdk29 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+
+        readPermissionGranted = hasReadPermission
+        writePermissionGranted = hasWritePermission || minSdk29
+
+        val permissionsToRequest = mutableListOf<String>()
+        if(!writePermissionGranted) {
+            permissionsToRequest.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        }
+        if(!readPermissionGranted) {
+            permissionsToRequest.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+        }
+        if(permissionsToRequest.isNotEmpty()) {
+            permissionsLauncher.launch(permissionsToRequest.toTypedArray())
+        }
+    }
 
 
 
@@ -122,5 +233,6 @@ class AddProductFragment : Fragment() {
         super.onDestroyView()
         Log.i("Frag-D","Frag Destroyed")
         _binding = null
+        requireActivity().contentResolver?.unregisterContentObserver(contentObserver)
     }
 }
