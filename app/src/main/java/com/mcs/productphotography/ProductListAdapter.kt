@@ -7,6 +7,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.mcs.productphotography.models.Product
 
 class ProductListAdapter : ListAdapter<Product, ProductListAdapter.ProductViewHolder>(ProductsComparator()) {
 
@@ -28,9 +29,10 @@ class ProductListAdapter : ListAdapter<Product, ProductListAdapter.ProductViewHo
         fun bind(barcode: String?, desc: String, length: Double,width: Double, height: Double, weight:Double) {
             descTV.text = desc
             barcodeTV.text = barcode
-            var dimens = "$length x $width x $height"
+            var dimens = "$length x $width x $height cm"
             dimensTV.text = dimens
-            weightTV.text = weight.toString()
+            val s = "$weight kg"
+            weightTV.text = s
         }
 
         companion object {

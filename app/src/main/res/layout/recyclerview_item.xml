@@ -30,39 +30,54 @@
                 app:layout_constraintTop_toTopOf="parent"
                 tools:text="@string/descriptionPlaceholder" />
 
-            <TextView
-                android:id="@+id/textBarcode"
-                android:layout_width="0dp"
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:textAppearance="@style/TextAppearance.AppCompat.Small"
-                app:layout_constraintEnd_toStartOf="@+id/textDimensions"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/textDescription"
-                tools:text="@string/placeholderBarcode" />
-
-            <TextView
-                android:id="@+id/textDimensions"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_16dp"
-                android:layout_marginEnd="16dp"
-                android:textAppearance="@style/TextAppearance.AppCompat.Small"
-                app:layout_constraintEnd_toStartOf="@+id/textWeight"
-                app:layout_constraintStart_toEndOf="@+id/textBarcode"
-                app:layout_constraintTop_toBottomOf="@+id/textDescription"
-                tools:text="@string/placeholderLength" />
-
-            <TextView
-                android:id="@+id/textWeight"
-                android:layout_width="@dimen/textViewWidth_45dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_16dp"
-                android:textAppearance="@style/TextAppearance.AppCompat.Small"
+                android:orientation="horizontal"
+                android:weightSum="5"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/textDescription"
-                tools:text="@string/placeholderWeight" />
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/textDescription">
 
+                <TextView
+                    android:id="@+id/textBarcode"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1.8"
+                    android:layout_marginTop="16dp"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Small"
+                    app:layout_constraintEnd_toStartOf="@+id/textDimensions"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/textDescription"
+                    tools:text="@string/placeholderBarcode" />
+
+                <TextView
+                    android:id="@+id/textDimensions"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_16dp"
+                    android:layout_marginEnd="4dp"
+                    android:layout_marginStart="4dp"
+                    android:layout_weight="2.4"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Small"
+                    app:layout_constraintEnd_toStartOf="@+id/textWeight"
+                    app:layout_constraintStart_toEndOf="@+id/textBarcode"
+                    app:layout_constraintTop_toBottomOf="@+id/textDescription"
+                    tools:text="@string/placeholderLength" />
+
+                <TextView
+                    android:id="@+id/textWeight"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0.8"
+                    android:textAlignment="textEnd"
+                    android:layout_marginTop="@dimen/margin_16dp"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Small"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/textDescription"
+                    tools:text="@string/placeholderWeight" />
+
+            </androidx.appcompat.widget.LinearLayoutCompat>
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.cardview.widget.CardView>

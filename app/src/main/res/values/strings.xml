@@ -26,5 +26,11 @@
     <string name="product_details">Product Details</string>
     <string name="photo_capture_button">Photo Capture Button</string>
     <string name="settings">Settings</string>
+    <string name="clear">Clear</string>
     <string name="export_csv">Export CSV</string>
+    <string name="cancel"><font color="#000000">Cancel</font></string>
+    <string name="yes"><font color="#000000">Yes</font></string>
+    <string name="delete_msg"><font color="#ff0000">Are you sure you want to clear all contents?</font></string>
+    <string name="cm">cm</string>
+    <string name="kg">kg</string>
 </resources>

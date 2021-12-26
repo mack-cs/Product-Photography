@@ -1,4 +1,4 @@
-package com.mcs.productphotography
+package com.mcs.productphotography.models
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity

@@ -2,7 +2,6 @@ package com.mcs.productphotography
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.fragment.app.Fragment
@@ -10,6 +9,9 @@ import androidx.lifecycle.Observer
 import com.mcs.productphotography.databinding.ActivityProductBinding
 import com.mcs.productphotography.fragments.AddProductFragment
 import com.mcs.productphotography.fragments.ProductListFragment
+import com.mcs.productphotography.utils.ProductApplication
+import com.mcs.productphotography.viewmodels.ProductViewModel
+import com.mcs.productphotography.viewmodels.ProductViewModelFactory
 
 class ProductActivity : AppCompatActivity() {
     private var returnedId: Long = 0

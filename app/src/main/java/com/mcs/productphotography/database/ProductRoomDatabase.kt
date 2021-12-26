@@ -1,10 +1,12 @@
-package com.mcs.productphotography
+package com.mcs.productphotography.database
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.mcs.productphotography.daos.ProductDao
+import com.mcs.productphotography.models.Product
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -53,7 +55,7 @@ public abstract class ProductRoomDatabase: RoomDatabase() {
                 // comment out the following line.
                 INSTANCE?.let { database ->
                     scope.launch(Dispatchers.IO) {
-                        populateDatabase(database.productDao())
+                        //populateDatabase(database.productDao())
                     }
                 }
             }

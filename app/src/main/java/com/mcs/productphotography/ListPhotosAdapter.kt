@@ -8,7 +8,7 @@ import android.widget.ImageView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.mcs.takesaveloadpic.ExternalStoragePhoto
+import com.mcs.productphotography.models.ExternalStoragePhoto
 
 class ListPhotosAdapter:
     ListAdapter<ExternalStoragePhoto, ListPhotosAdapter.PicViewHolder>(ListPhotosAdapter.PhotosComparator()) {
@@ -18,7 +18,6 @@ class ListPhotosAdapter:
 
         fun bind(pic: Bitmap) {
             photo.setImageBitmap(pic)
-            //tv.text="Ndabvuma-202002020202020202020202020200 0202020"
         }
 
         companion object {

@@ -1,9 +1,9 @@
-package com.mcs.productphotography
+package com.mcs.productphotography.repositories
 
 import android.util.Log
 import androidx.annotation.WorkerThread
-import com.mcs.productphotography.Product
-import com.mcs.productphotography.ProductDao
+import com.mcs.productphotography.daos.ProductDao
+import com.mcs.productphotography.models.Product
 import kotlinx.coroutines.flow.Flow
 
 
@@ -16,6 +16,11 @@ class ProductRepository(private val productDao: ProductDao) {
         val id = productDao.insert(product)
         Log.i("Repository id ->","( $id )")
        return id
+    }
+    @Suppress("RedundantSuspendModifier")
+    @WorkerThread
+    suspend fun deleteAll() {
+        productDao.deleteAll()
     }
 
 }

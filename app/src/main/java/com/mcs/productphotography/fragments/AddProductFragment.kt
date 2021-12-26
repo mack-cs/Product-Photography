@@ -1,7 +1,6 @@
 package com.mcs.productphotography.fragments
 
 import android.Manifest
-import android.content.ContentValues
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -16,20 +15,15 @@ import com.mcs.productphotography.*
 import com.mcs.productphotography.databinding.FragmentAddProductBinding
 
 
-import android.content.Context
 import android.content.pm.PackageManager
 import android.database.ContentObserver
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Matrix
-import android.net.Uri
 import android.os.Build
-import android.os.Environment
 import android.provider.MediaStore
-import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -38,45 +32,42 @@ import androidx.lifecycle.lifecycleScope
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanIntentResult
 import com.journeyapps.barcodescanner.ScanOptions
-import com.mcs.productphotography.fragments.Utility.saveProduct
+import com.mcs.productphotography.utils.Utility
+import com.mcs.productphotography.utils.Utility.saveProduct
+import com.mcs.productphotography.models.ExternalStoragePhoto
+import com.mcs.productphotography.utils.ProductApplication
+import com.mcs.productphotography.viewmodels.ProductViewModel
+import com.mcs.productphotography.viewmodels.ProductViewModelFactory
 import kotlinx.coroutines.launch
 import java.io.File
-import java.io.IOException
-import java.io.OutputStream
 
 
 class AddProductFragment : Fragment() {
+    private lateinit var capturePhotoLauncher: ActivityResultLauncher<Intent>
+    private lateinit var fragmentLauncher: ActivityResultLauncher<ScanOptions>
+    private lateinit var permissionsLauncher: ActivityResultLauncher<Array<String>>
     private lateinit var photoFile: File
     private val FILE_NAME = "photo.jpg"
     private var readPermissionGranted = false
     private var writePermissionGranted = false
-    private lateinit var permissionsLauncher: ActivityResultLauncher<Array<String>>
     private lateinit var contentObserver: ContentObserver
 
     private lateinit var externalStoragePhotoAdapter: ListPhotosAdapter
+    var isSaved:Boolean = false
     private var fileFolder:String = ""
     private  var _binding: FragmentAddProductBinding? = null
+    private var photosList: List<ExternalStoragePhoto>? = null
     private val binding get() = _binding!!
     private  var returnedId:Long = 0
-    private val productViewModel: ProductViewModel by activityViewModels{ProductViewModelFactory(
-        (activity?.application as ProductApplication).repository)}
-    private val fragmentLauncher = registerForActivityResult(ScanContract()) { result: ScanIntentResult ->
-        if (result.contents == null) {
-            Toast.makeText(context, "Scan Canceled", Toast.LENGTH_LONG).show()
-        } else {
-            binding.barcodeET.setText(result.contents.toString())
-        }
-    }
-    private val capturePhotoLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
-            result ->
-        processImage(result.resultCode)
+    private val productViewModel: ProductViewModel by activityViewModels{
+        ProductViewModelFactory(
+        (activity?.application as ProductApplication).repository)
     }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         _binding = FragmentAddProductBinding.inflate(inflater, container, false)
         val view = binding.root
 
@@ -88,11 +79,30 @@ class AddProductFragment : Fragment() {
         editTexts.add(binding.heightET)
         editTexts.add(binding.weightET)
 
-        binding.saveProductET.setOnClickListener { saveProduct(editTexts, productViewModel,requireContext()) }
+        fragmentLauncher = registerForActivityResult(ScanContract()) { result: ScanIntentResult ->
+            if (result.contents == null) {
+                Toast.makeText(context, "Scan Canceled", Toast.LENGTH_LONG).show()
+            } else {
+                binding.barcodeET.setText(result.contents.toString())
+            }
+        }
+        capturePhotoLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
+                result ->
+            processImage(result.resultCode)
+        }
+
+        binding.saveProductET.setOnClickListener {
+            isSaved = saveProduct(editTexts, productViewModel,requireContext())
+            if (isSaved){
+                loadPhotosFromExternalStorageIntoRecyclerView("non-existing-folder")
+                isSaved = false
+            }
+        }
+
         productViewModel.returnedId.observe(requireActivity(), Observer {
             returnedId  = productViewModel.returnedId.value!!
         })
-        binding.barcodeET.onFocusChangeListener = View.OnFocusChangeListener{ view, b ->
+        binding.barcodeET.onFocusChangeListener = View.OnFocusChangeListener{ _, b ->
             if (!b) {
                 fileFolder = binding.barcodeET.text.toString()
             }
@@ -116,23 +126,31 @@ class AddProductFragment : Fragment() {
             }
         }
         updateOrRequestPermissions()
-        binding.btnCapture.setOnClickListener {
-            val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-            photoFile = Utility.getPhotoFile(requireActivity(),FILE_NAME)
-
-            // This Doesnt work for API >= 24,(starting2016)
-            //takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoFile)
-            val fileProvider = activity?.application?.let { it1 -> FileProvider.getUriForFile(it1,"package com.mcs.productphotography.fileprovider", photoFile) }
-            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,fileProvider)
-            // Check if there is camera
-            if (activity?.let { it1 -> takePictureIntent.resolveActivity(it1.packageManager) } !=null) {
-                capturePhotoLauncher.launch(takePictureIntent)
-            }else{
-                Toast.makeText(activity,"Unable to open camera", Toast.LENGTH_LONG).show()
-            }
-        }
-        if (fileFolder != "")loadPhotosFromExternalStorageIntoRecyclerView(fileFolder)
         return view
+    }
+
+    private fun captureImage() {
+        if (binding.barcodeET.text.toString() != "") {
+            fileFolder = binding.barcodeET.text.toString()
+            val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+            photoFile = Utility.getPhotoFile(requireActivity(), FILE_NAME)
+            val fileProvider = activity?.application?.let { it1 ->
+                FileProvider.getUriForFile(
+                    it1,
+                    "package com.mcs.productphotography.fileprovider",
+                    photoFile
+                )
+            }
+            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, fileProvider)
+            // Check if there is camera
+            if (requireActivity().let { it1 -> takePictureIntent.resolveActivity(it1.packageManager) } != null) {
+                capturePhotoLauncher.launch(takePictureIntent)
+            } else {
+                Toast.makeText(requireContext(), "Unable to open camera", Toast.LENGTH_LONG).show()
+            }
+        } else {
+            Toast.makeText(requireContext(), "Barcode required!", Toast.LENGTH_LONG).show()
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -146,12 +164,10 @@ class AddProductFragment : Fragment() {
 
     private fun setOnClickListener() {
         binding.cameraScanIV.setOnClickListener { setupScanner() }
+        binding.btnCapture.setOnClickListener {
+            captureImage()
+        }
     }
-
-
-
-
-
 
 
     private fun initContentObserver() {
@@ -175,9 +191,13 @@ class AddProductFragment : Fragment() {
     private fun loadPhotosFromExternalStorageIntoRecyclerView(folder:String) {
 
         lifecycleScope.launch {
-            val photos = productViewModel.getImages(folder,requireContext())
-            Log.i("Photos","${photos.size}")
-            externalStoragePhotoAdapter.submitList(photos)
+            if (!isSaved) {
+                photosList = productViewModel.getImages(folder, requireContext())
+                externalStoragePhotoAdapter.submitList(photosList)
+            }else{
+                externalStoragePhotoAdapter.submitList(null)
+            }
+
         }
     }
 
@@ -185,12 +205,17 @@ class AddProductFragment : Fragment() {
 
 
     private fun processImage(resultCode: Int) {
+        var isSavedPhoto:Boolean = false
         when (resultCode) {
             AppCompatActivity.RESULT_OK -> {
                 //val takenImage = data?.extras?.get("data") as Bitmap
                 val takenImage = BitmapFactory.decodeFile(photoFile.absolutePath)
                 val rotatedImg = Utility.rotateBitmap(takenImage,90f)
-                activity?.let { productViewModel.saveBitmapQ(it, rotatedImg,fileFolder) } //save full quality
+                activity?.let {
+                    isSavedPhoto = productViewModel.saveBitmapQ(it, rotatedImg,fileFolder) } //save full quality
+                if (isSavedPhoto){
+                    takeAnotherPhoto().show()
+                }
             }
             else -> {
                 Toast.makeText(activity, "Photo Capture Canceled", Toast.LENGTH_LONG).show()
@@ -227,12 +252,23 @@ class AddProductFragment : Fragment() {
         }
     }
 
-
-
     override fun onDestroyView() {
         super.onDestroyView()
-        Log.i("Frag-D","Frag Destroyed")
         _binding = null
         requireActivity().contentResolver?.unregisterContentObserver(contentObserver)
     }
+
+    private fun takeAnotherPhoto(): AlertDialog {
+        return AlertDialog.Builder(requireContext())
+            .setTitle("Take another Photo")
+            .setIcon(R.drawable.ic_baseline_add_a_photo_24)
+            .setPositiveButton(R.string.yes){_, _ ->
+                captureImage()
+            }
+            .setNegativeButton(R.string.cancel){_, _ ->
+                //Toast.makeText(requireContext(),"You didn't clear the contents",Toast.LENGTH_LONG).show()
+            }.create()
+    }
+
+
 }

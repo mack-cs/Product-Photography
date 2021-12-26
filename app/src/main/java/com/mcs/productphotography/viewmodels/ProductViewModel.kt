@@ -1,4 +1,4 @@
-package com.mcs.productphotography
+package com.mcs.productphotography.viewmodels
 
 import android.content.ContentValues
 import android.content.Context
@@ -7,9 +7,14 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Environment
 import android.provider.MediaStore
+import android.provider.MediaStore.*
+import android.provider.MediaStore.Images.*
+import android.provider.MediaStore.Images.Media.*
 import android.util.Log
 import androidx.lifecycle.*
-import com.mcs.takesaveloadpic.ExternalStoragePhoto
+import com.mcs.productphotography.models.Product
+import com.mcs.productphotography.models.ExternalStoragePhoto
+import com.mcs.productphotography.repositories.ProductRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -30,16 +35,18 @@ class ProductViewModel(private val repository: ProductRepository):ViewModel() {
         returnedId.value = rId
         Log.i("ModelView ID", "$rId")
     }
+    fun deleteAll() = viewModelScope.launch {
+        repository.deleteAll()
+    }
 
-    fun saveBitmapQ(context: Context, bitmap: Bitmap,folder: String) {
-        //val relativeLocation = Environment.DIRECTORY_PICTURE
-
+    fun saveBitmapQ(context: Context, bitmap: Bitmap,folder: String):Boolean{
+        var photoSaved:Boolean = false
         val relativeLocation = Environment.DIRECTORY_PICTURES + File.separator + folder
 
         val contentValues = ContentValues()
-        contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, "$folder.jpg") //this is the file name you want to save
-        contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpg") // Content-Type
-        contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, relativeLocation)
+        contentValues.put(MediaColumns.DISPLAY_NAME, "$folder.jpg") //this is the file name you want to save
+        contentValues.put(MediaColumns.MIME_TYPE, "image/jpg") // Content-Type
+        contentValues.put(MediaColumns.RELATIVE_PATH, relativeLocation)
 
         val resolver = context.contentResolver
 
@@ -47,7 +54,7 @@ class ProductViewModel(private val repository: ProductRepository):ViewModel() {
         var uri: Uri? = null
 
         try {
-            val contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+            val contentUri = EXTERNAL_CONTENT_URI
             uri = resolver.insert(contentUri, contentValues)
 
             if (uri == null) {
@@ -60,9 +67,10 @@ class ProductViewModel(private val repository: ProductRepository):ViewModel() {
                 throw IOException("Failed to get output stream.")
             }
 
-            if (bitmap.compress(Bitmap.CompressFormat.JPEG, 95, stream) == false) {
+            if (!bitmap.compress(Bitmap.CompressFormat.JPEG, 95, stream)) {
                 throw IOException("Failed to save bitmap.")
             }
+            photoSaved = true
         } catch (e: IOException) {
             if (uri != null) {
                 resolver.delete(uri, null, null)
@@ -71,25 +79,26 @@ class ProductViewModel(private val repository: ProductRepository):ViewModel() {
         } finally {
             stream?.close()
         }
+        return photoSaved
     }
 
      suspend fun getImages(fileFolder: String, context: Context): List<ExternalStoragePhoto> {
         return withContext(Dispatchers.IO) {
             val path = fileFolder //Custom Directory name which you used earlier for storing images
 
-            val selection = MediaStore.Files.FileColumns.RELATIVE_PATH + " like ? "
+            val selection = Files.FileColumns.RELATIVE_PATH + " like ? "
 
             val selectionargs = arrayOf("%$path%")
 
-            val externalUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+            val externalUri = EXTERNAL_CONTENT_URI
             val projection = arrayOf(
-                MediaStore.Files.FileColumns._ID,
-                MediaStore.Images.Media.DATE_TAKEN,
-                MediaStore.MediaColumns.TITLE,
-                MediaStore.Images.Media.HEIGHT,
-                MediaStore.Images.Media.WIDTH,
-                MediaStore.Images.Media.MIME_TYPE,
-                MediaStore.MediaColumns.RELATIVE_PATH
+                Files.FileColumns._ID,
+                DATE_TAKEN,
+                MediaColumns.TITLE,
+                HEIGHT,
+                WIDTH,
+                MIME_TYPE,
+                MediaColumns.RELATIVE_PATH
             )
             val photos = mutableListOf<ExternalStoragePhoto>()
             val cursor = context.contentResolver?.query(
@@ -97,24 +106,24 @@ class ProductViewModel(private val repository: ProductRepository):ViewModel() {
                 projection,
                 selection,
                 selectionargs,
-                MediaStore.Images.Media.DATE_TAKEN
+                DATE_TAKEN
             )
-            val idColumn = cursor?.getColumnIndex(MediaStore.MediaColumns._ID)
+            val idColumn = cursor?.getColumnIndex(MediaColumns._ID)
 
             while (cursor?.moveToNext()!!) {
                 val photoUri = Uri.withAppendedPath(
-                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    EXTERNAL_CONTENT_URI,
                     cursor.getString(idColumn!!)
                 )
                 //This will give you the uri of the images from that custom folder
                 if (photoUri != null) {
                     var fileName: String? = null
                     if (photoUri.toString().startsWith("file:")) {
-                        fileName = photoUri.getPath()
+                        fileName = photoUri.path
                     } else {
                         val c = context.contentResolver?.query(photoUri, null, null, null, null)
                         if (c != null && c.moveToFirst()) {
-                            val id = c.getColumnIndex(MediaStore.Images.Media.DATA)
+                            val id = c.getColumnIndex(DATA)
                             if (id != -1) {
                                 fileName = c.getString(id)
                             }

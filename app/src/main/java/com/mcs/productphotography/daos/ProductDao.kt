@@ -1,10 +1,10 @@
-package com.mcs.productphotography
+package com.mcs.productphotography.daos
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.mcs.productphotography.Product
+import com.mcs.productphotography.models.Product
 import kotlinx.coroutines.flow.Flow
 
 @Dao
