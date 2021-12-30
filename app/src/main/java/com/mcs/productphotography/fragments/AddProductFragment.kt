@@ -25,6 +25,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
@@ -52,7 +53,9 @@ class AddProductFragment : Fragment() {
     private val FILE_NAME = "photo.jpg"
     private var readPermissionGranted = false
     private var writePermissionGranted = false
+    private var cameraPermissionGranted = false
     private lateinit var contentObserver: ContentObserver
+    private val PERMISSION_CODE:Int = 2
 
     private lateinit var externalStoragePhotoAdapter: ListPhotosAdapter
     var isSaved:Boolean = false
@@ -117,6 +120,7 @@ class AddProductFragment : Fragment() {
         permissionsLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
             readPermissionGranted = permissions[Manifest.permission.READ_EXTERNAL_STORAGE] ?: readPermissionGranted
             writePermissionGranted = permissions[Manifest.permission.WRITE_EXTERNAL_STORAGE] ?: writePermissionGranted
+            cameraPermissionGranted = permissions[Manifest.permission.CAMERA] ?:cameraPermissionGranted
 
             if (readPermissionGranted) {
                 if (fileFolder != "") {
@@ -167,9 +171,14 @@ class AddProductFragment : Fragment() {
     private fun setOnClickListener() {
         binding.cameraScanIV.setOnClickListener { setupScanner() }
         binding.btnCapture.setOnClickListener {
-            captureImage()
+            if (readPermissionGranted && cameraPermissionGranted) {
+                captureImage()
+            }else{
+                updateOrRequestPermissions()
+            }
         }
     }
+
 
 
     private fun initContentObserver() {
@@ -239,6 +248,9 @@ class AddProductFragment : Fragment() {
         ) == PackageManager.PERMISSION_GRANTED
         val minSdk29 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
 
+        val hasCameraPermission = ContextCompat.checkSelfPermission(requireContext(),
+        Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+
         readPermissionGranted = hasReadPermission
         writePermissionGranted = hasWritePermission || minSdk29
 
@@ -248,6 +260,9 @@ class AddProductFragment : Fragment() {
         }
         if(!readPermissionGranted) {
             permissionsToRequest.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+        }
+        if(!cameraPermissionGranted) {
+            permissionsToRequest.add(Manifest.permission.CAMERA)
         }
         if(permissionsToRequest.isNotEmpty()) {
             permissionsLauncher.launch(permissionsToRequest.toTypedArray())
