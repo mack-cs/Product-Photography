@@ -28,6 +28,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.snackbar.Snackbar
 
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanIntentResult
@@ -46,6 +47,7 @@ class AddProductFragment : Fragment() {
     private lateinit var capturePhotoLauncher: ActivityResultLauncher<Intent>
     private lateinit var fragmentLauncher: ActivityResultLauncher<ScanOptions>
     private lateinit var permissionsLauncher: ActivityResultLauncher<Array<String>>
+    private lateinit var mView: View
     private lateinit var photoFile: File
     private val FILE_NAME = "photo.jpg"
     private var readPermissionGranted = false
@@ -69,7 +71,7 @@ class AddProductFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         _binding = FragmentAddProductBinding.inflate(inflater, container, false)
-        val view = binding.root
+        mView = binding.root
 
         val editTexts = mutableListOf<EditText>()
         editTexts.add(binding.barcodeET)
@@ -92,7 +94,7 @@ class AddProductFragment : Fragment() {
         }
 
         binding.saveProductET.setOnClickListener {
-            isSaved = saveProduct(editTexts, productViewModel,requireContext())
+            isSaved = saveProduct(editTexts, productViewModel,requireContext(),mView)
             if (isSaved){
                 loadPhotosFromExternalStorageIntoRecyclerView("non-existing-folder")
                 isSaved = false
@@ -126,7 +128,7 @@ class AddProductFragment : Fragment() {
             }
         }
         updateOrRequestPermissions()
-        return view
+        return mView
     }
 
     private fun captureImage() {
@@ -146,10 +148,10 @@ class AddProductFragment : Fragment() {
             if (requireActivity().let { it1 -> takePictureIntent.resolveActivity(it1.packageManager) } != null) {
                 capturePhotoLauncher.launch(takePictureIntent)
             } else {
-                Toast.makeText(requireContext(), "Unable to open camera", Toast.LENGTH_LONG).show()
+                Snackbar.make(mView, "Unable to open camera", Snackbar.LENGTH_LONG).show()
             }
         } else {
-            Toast.makeText(requireContext(), "Barcode required!", Toast.LENGTH_LONG).show()
+            Snackbar.make(mView,"Barcode required",Snackbar.LENGTH_SHORT).show()
         }
     }
 

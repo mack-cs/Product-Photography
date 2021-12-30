@@ -5,11 +5,13 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.os.Environment
+import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
+import com.google.android.material.snackbar.Snackbar
 import com.mcs.productphotography.models.Product
 import com.mcs.productphotography.viewmodels.ProductViewModel
 import java.io.File
@@ -31,7 +33,7 @@ object Utility {
         val storageDirectory = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
         return File.createTempFile(fileName,".jpg",storageDirectory)
     }
-    fun saveProduct(editTexts: MutableList<EditText>, productViewModel: ProductViewModel, context: Context):Boolean {
+    fun saveProduct(editTexts: MutableList<EditText>, productViewModel: ProductViewModel, context: Context,view: View):Boolean {
         val barcode = editTexts[0].text.toString()
         val desc = editTexts[1].text.toString()
         val length = editTexts[2].text.toString()
@@ -40,7 +42,7 @@ object Utility {
         val weight = editTexts[5].text.toString()
 
         val isSaved: Boolean = if (checkIfEmpty(barcode, desc, length, width, height, weight)){
-            Toast.makeText(context,"All fields are required!", Toast.LENGTH_LONG).show()
+            Snackbar.make(view,"All fields are required!", Snackbar.LENGTH_LONG).show()
             false
         }else{
             productViewModel.insert(Product(barcode,desc,length.toDouble(),width.toDouble(),height.toDouble(),weight.toDouble()))
@@ -74,13 +76,17 @@ object Utility {
         return format.format(date)
     }
 
-    fun createCSV(launcher: ActivityResultLauncher<Intent>) {
-        val fileName:String = createFileName().toString()+".csv"
-        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
-        intent.addCategory(Intent.CATEGORY_OPENABLE)
-        intent.type = "text/csv"
-        intent.putExtra(Intent.EXTRA_TITLE, fileName)
-        launcher.launch(intent)
+    fun createCSV(launcher: ActivityResultLauncher<Intent>, view: View, products: List<Product>) {
+        if (products.isNotEmpty()){
+            val fileName:String = createFileName().toString()+".csv"
+            val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
+            intent.addCategory(Intent.CATEGORY_OPENABLE)
+            intent.type = "text/csv"
+            intent.putExtra(Intent.EXTRA_TITLE, fileName)
+            launcher.launch(intent)
+        }else{
+            Snackbar.make(view,"Cant create CSV! No data!",Snackbar.LENGTH_SHORT).show()
+        }
     }
 
     fun saveCSV(data: Intent?, context: Context, products: List<Product>) {

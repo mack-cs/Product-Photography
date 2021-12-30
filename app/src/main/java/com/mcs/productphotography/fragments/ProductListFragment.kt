@@ -17,6 +17,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
+import com.google.android.material.snackbar.Snackbar
 import com.mcs.productphotography.*
 import com.mcs.productphotography.databinding.FragmentProductListBinding
 import com.mcs.productphotography.models.Product
@@ -31,21 +32,19 @@ import java.util.*
 
 
 class ProductListFragment : Fragment() {
+    private lateinit var saveCSVLauncher: ActivityResultLauncher<Intent>
     private lateinit var binding:FragmentProductListBinding
     private lateinit var  productsList:List<Product>
+    private lateinit var mView: View
     private val productViewModel: ProductViewModel by activityViewModels {
         ProductViewModelFactory((activity?.application as ProductApplication).repository) }
-    private val saveCSVLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
-            result ->
-        Utility.saveCSV(result.data,requireContext(),productsList)
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         binding = FragmentProductListBinding.inflate(inflater,container,false)
-        val view = binding.root
+        mView = binding.root
 
         val adapter = ProductListAdapter()
         binding.recyclerview.adapter = adapter
@@ -55,11 +54,14 @@ class ProductListFragment : Fragment() {
             productsList = it
                 }
         }
+        saveCSVLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
+                result ->
+            Utility.saveCSV(result.data,requireContext(),productsList)
+        }
         setHasOptionsMenu(true)
 
         (requireActivity() as AppCompatActivity).setSupportActionBar(binding.toolbar)
-        Log.i("Frag-List","OnCreateView")
-        return view
+        return mView
 
     }
 
@@ -71,7 +73,7 @@ class ProductListFragment : Fragment() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when(item.itemId){
             R.id.export->{
-                Utility.createCSV(saveCSVLauncher)
+                Utility.createCSV(saveCSVLauncher,mView,productsList)
                 true
             }
             R.id.clear->{
@@ -84,7 +86,7 @@ class ProductListFragment : Fragment() {
 
    private fun clearAllEntries() {
         if (productsList.isEmpty()){
-            Toast.makeText(requireContext(),"Nothing to clear",Toast.LENGTH_LONG).show()
+            Snackbar.make(mView,"Nothing to clear",Snackbar.LENGTH_LONG).show()
         }else {
             clearContents(requireContext()).show()
         }
